@@ -1,6 +1,6 @@
 using System.Security.Claims;
 using FIAP.CloudGames.Usuario.API.Domain.Entities;
-using FIAP.CloudGames.Usuario.API.Domain.Events;
+using DomainEvents = FIAP.CloudGames.Usuario.API.Domain.Events;
 using FIAP.CloudGames.Usuario.API.Application.DTOs;
 using FIAP.CloudGames.Usuario.API.Infrastructure.Configurations;
 using FIAP.CloudGames.Usuario.API.Infrastructure.Data;
@@ -133,7 +133,7 @@ app.MapPost("/api/users", async (CreateUserDto dto, ApplicationDbContext db, IEv
     await db.SaveChangesAsync();
 
     // Event Sourcing
-    var userCreatedEvent = new UserCreatedEvent(
+    var userCreatedEvent = new DomainEvents.UserCreatedEvent(
         user.Id, 
         user.Name, 
         user.Email, 
@@ -166,7 +166,7 @@ app.MapPost("/api/auth/login", async (LoginDto dto, ApplicationDbContext db, IJw
     var token = jwtService.GenerateToken(user);
     
     // Event Sourcing
-    var userLoggedInEvent = new UserLoggedInEvent(user.Id, user.Email, DateTime.UtcNow);
+    var userLoggedInEvent = new DomainEvents.UserLoggedInEvent(user.Id, user.Email, DateTime.UtcNow);
     await eventStore.SaveEventAsync(userLoggedInEvent);
 
     logger.LogInformation("Login realizado com sucesso para usuário: {UserId}", user.Id);
@@ -218,7 +218,12 @@ app.MapPut("/api/users/{id}", async (Guid id, UpdateUserDto dto, ApplicationDbCo
 {
     logger.LogInformation("Atualizando usuário com ID: {UserId}", id);
     
-    var userId = Guid.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+    {
+        logger.LogWarning("Token inválido ou sem identificador de usuário");
+        return Results.Unauthorized();
+    }
     
     if (id != userId && user.FindFirst(ClaimTypes.Role)?.Value != UserRole.Admin.ToString())
     {
@@ -237,7 +242,7 @@ app.MapPut("/api/users/{id}", async (Guid id, UpdateUserDto dto, ApplicationDbCo
     await db.SaveChangesAsync();
 
     // Event Sourcing
-    var userUpdatedEvent = new UserUpdatedEvent(
+    var userUpdatedEvent = new DomainEvents.UserUpdatedEvent(
         userEntity.Id,
         userEntity.Name,
         userEntity.Email,

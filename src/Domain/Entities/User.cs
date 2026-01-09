@@ -22,7 +22,12 @@ public class User
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
 
-    private User() { }
+    private User() 
+    {
+        Name = string.Empty;
+        Email = string.Empty;
+        PasswordHash = string.Empty;
+    }
 
     public User(string name, string email, string password, UserRole role = UserRole.User)
     {

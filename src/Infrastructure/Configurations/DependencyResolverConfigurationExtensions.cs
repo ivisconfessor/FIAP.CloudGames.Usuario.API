@@ -24,6 +24,7 @@ public static class DependencyResolverConfigurationExtensions
         })
         .AddJwtBearer(options =>
         {
+            var jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não está configurado");
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -33,7 +34,7 @@ public static class DependencyResolverConfigurationExtensions
                 ValidIssuer = configuration["Jwt:Issuer"],
                 ValidAudience = configuration["Jwt:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    Encoding.UTF8.GetBytes(jwtKey))
             };
         });
 
