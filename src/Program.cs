@@ -86,7 +86,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
-// Seed de usuário admin para desenvolvimento
+// Seed de usuário admin para testes
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
