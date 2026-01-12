@@ -24,9 +24,7 @@ public static class DependencyResolverConfigurationExtensions
         })
         .AddJwtBearer(options =>
         {
-            var jwtKey = configuration["IssuersKeys:FIAP.CloudGames.Usuario.API"] 
-                ?? throw new InvalidOperationException("IssuersKeys:FIAP.CloudGames.Usuario.API não está configurado");
-
+            var jwtKey = configuration["Jwt:Key"] ?? throw new InvalidOperationException("Jwt:Key não está configurado");
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
